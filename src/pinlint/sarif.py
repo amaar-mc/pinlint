@@ -5,7 +5,14 @@ other tools ingest. The document is built as plain dictionaries so it can be ser
 the standard library json module and asserted against in tests.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from .model import Finding
+
+if TYPE_CHECKING:
+    from .severity import AnnotatedFinding
 
 _SCHEMA = "https://json.schemastore.org/sarif-2.1.0.json"
 _INFORMATION_URI = "https://github.com/amaar-mc/pinlint"
@@ -44,15 +51,16 @@ def _driver_rules() -> list[dict[str, object]]:
     return rules
 
 
-def _result(finding: Finding) -> dict[str, object]:
+def _result(finding: Finding, *, level: str | None = None) -> dict[str, object]:
     location: dict[str, object] = {"artifactLocation": {"uri": finding.file}}
     # SARIF regions are 1-based; the io-error finding carries line 0, so omit the region there.
     if finding.line >= 1:
         location["region"] = {"startLine": finding.line}
+    effective_level = level if level is not None else _LEVEL_BY_CODE[finding.code]
     result: dict[str, object] = {
         "ruleId": finding.code,
         "ruleIndex": _INDEX_BY_CODE[finding.code],
-        "level": _LEVEL_BY_CODE[finding.code],
+        "level": effective_level,
         "message": {"text": finding.message},
         "locations": [{"physicalLocation": location}],
     }
@@ -62,7 +70,12 @@ def _result(finding: Finding) -> dict[str, object]:
 
 
 def to_sarif(findings: list[Finding], *, tool_version: str) -> dict[str, object]:
-    """Build a SARIF 2.1.0 document for the given findings."""
+    """Build a SARIF 2.1.0 document for the given findings.
+
+    When findings are plain Finding objects the default SARIF level for each rule
+    code is used. To reflect per-rule severity overrides, pass AnnotatedFinding
+    objects (from severity.apply_severities) via to_sarif_annotated instead.
+    """
     return {
         "version": "2.1.0",
         "$schema": _SCHEMA,
@@ -77,6 +90,36 @@ def to_sarif(findings: list[Finding], *, tool_version: str) -> dict[str, object]
                     }
                 },
                 "results": [_result(finding) for finding in findings],
+            }
+        ],
+    }
+
+
+def to_sarif_annotated(
+    annotated: list[AnnotatedFinding], *, tool_version: str
+) -> dict[str, object]:
+    """Build a SARIF 2.1.0 document from annotated findings.
+
+    Like to_sarif but uses the effective_severity from each AnnotatedFinding
+    rather than the rule default. Call this when per-rule severity flags have
+    been applied so the SARIF level reflects the override.
+    """
+    return {
+        "version": "2.1.0",
+        "$schema": _SCHEMA,
+        "runs": [
+            {
+                "tool": {
+                    "driver": {
+                        "name": "pinlint",
+                        "informationUri": _INFORMATION_URI,
+                        "version": tool_version,
+                        "rules": _driver_rules(),
+                    }
+                },
+                "results": [
+                    _result(af.finding, level=af.effective_severity) for af in annotated
+                ],
             }
         ],
     }

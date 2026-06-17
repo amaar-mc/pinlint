@@ -6,6 +6,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.0]
+
+### Added
+- Per-rule severity configuration: `--error CODE`, `--warning CODE`, and `--off CODE` CLI
+  flags (all repeatable) let teams treat some rules as errors, others as warnings, and
+  silence others entirely. CODE must be a known rule code; an unknown code exits 2 with a
+  clear message.
+- Exit-code semantics: exit 1 only when at least one ERROR-level finding remains after
+  applying severities and `--allow` filtering. Warnings are printed but exit 0.
+- Default severities (no flags) are backward compatible with 0.4.0: unpinned, missing-hash,
+  parse-error, and io-error are errors; unpinnable is a warning.  These match the SARIF
+  rule catalog in `sarif.py` exactly.
+- `severity.py` module with pure, testable functions: `default_severity_map()`,
+  `apply_severities(*, findings, severity_map)`, and `known_codes()`.
+- `AnnotatedFinding` class pairing a `Finding` with its `effective_severity` field.
+- `to_sarif_annotated(annotated, *, tool_version)` in `sarif.py` builds a SARIF 2.1.0
+  document using the effective severity from each annotated finding rather than the
+  rule default.
+- JSON output (`--format json`) now includes an `effective_severity` field on each entry.
+- All new public symbols exported from `__init__.__all__`:
+  `AnnotatedFinding`, `SeverityMap`, `apply_severities`, `default_severity_map`,
+  `known_codes`, `to_sarif_annotated`.
+
 ## [0.4.0]
 
 ### Added

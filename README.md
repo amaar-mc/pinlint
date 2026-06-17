@@ -83,6 +83,66 @@ protection). The only dependency is `packaging`, the canonical PEP 508 parser.
 - `--write-baseline PATH` write all current findings to a baseline JSON file, then exit 0.
 - `--baseline PATH` suppress findings present in the baseline; exit nonzero only when new
   findings remain.
+- `--error CODE` treat CODE as an error (repeatable).
+- `--warning CODE` treat CODE as a warning; warnings are printed but do not cause a nonzero
+  exit (repeatable).
+- `--off CODE` silence CODE entirely; matching findings are dropped from output (repeatable).
+
+## Per-rule severity
+
+Different teams have different tolerances. Severity flags let you decide which rules block
+CI and which are advisory.
+
+```sh
+# Treat unpinned as a warning (printed, exit 0) and silence missing-hash entirely.
+pinlint requirements.txt --warning unpinned --off missing-hash
+
+# Escalate unpinnable from its default warning to a hard error.
+pinlint requirements.txt --error unpinnable
+```
+
+**Exit-code semantics**: exit 1 only when at least one ERROR-level finding remains after
+applying severity overrides and any `--allow` filtering. Warnings alone exit 0. This lets
+you run pinlint in advisory mode (all warnings) during migration without breaking CI.
+
+Default severities (no flags) match the SARIF rule catalog and are backward compatible with
+0.4.0:
+
+| Rule | Default severity |
+|---|:---:|
+| `unpinned` | error |
+| `missing-hash` | error |
+| `unpinnable` | warning |
+| `parse-error` | error |
+| `io-error` | error |
+
+Valid rule codes: `unpinned`, `missing-hash`, `unpinnable`, `parse-error`, `io-error`.
+Passing an unknown code exits 2 with a clear error message listing the valid codes.
+
+### Programmatic API
+
+```python
+from pinlint import (
+    apply_severities,
+    default_severity_map,
+    lint_file,
+    to_sarif_annotated,
+)
+
+findings = lint_file(
+    "requirements.txt", require_hashes=True, allow_unpinned=False, follow_includes=True
+)
+sev = default_severity_map()
+sev["unpinned"] = "warning"   # downgrade
+sev["missing-hash"] = "off"   # silence
+
+annotated = apply_severities(findings=findings, severity_map=sev)
+for af in annotated:
+    print(af.effective_severity, af.code, af.message)
+
+# SARIF output with effective severities:
+doc = to_sarif_annotated(annotated, tool_version="0.5.0")
+```
 
 ## Baseline: adopt pinlint incrementally
 

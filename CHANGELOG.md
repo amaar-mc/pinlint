@@ -6,8 +6,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Planned
-- SARIF output for code-scanning annotations.
+## [0.3.0]
+
+### Added
+- `--format sarif` output: a SARIF 2.1.0 log for GitHub code scanning and other analysis
+  tools, with a rule catalog (unpinned and missing-hash and parse-error and io-error as
+  errors, unpinnable as a warning) and 1-based source regions.
+- `to_sarif(findings, *, tool_version)` in the public API for building the SARIF document
+  programmatically.
 
 ## [0.2.0]
 

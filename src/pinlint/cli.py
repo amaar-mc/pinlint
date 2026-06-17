@@ -3,8 +3,10 @@ import json
 import sys
 from dataclasses import asdict
 
+from . import __version__
 from .lint import lint_file
 from .model import Finding
+from .sarif import to_sarif
 
 
 def _print_text(findings: list[Finding]) -> None:
@@ -14,6 +16,10 @@ def _print_text(findings: list[Finding]) -> None:
 
 def _print_json(findings: list[Finding]) -> None:
     print(json.dumps([asdict(finding) for finding in findings], indent=2))
+
+
+def _print_sarif(findings: list[Finding]) -> None:
+    print(json.dumps(to_sarif(findings, tool_version=__version__), indent=2))
 
 
 def run(argv: list[str]) -> int:
@@ -34,7 +40,12 @@ def run(argv: list[str]) -> int:
         metavar="PACKAGE",
         help="ignore findings for this package name (repeatable)",
     )
-    parser.add_argument("--format", choices=("text", "json"), default="text", help="output format")
+    parser.add_argument(
+        "--format",
+        choices=("text", "json", "sarif"),
+        default="text",
+        help="output format",
+    )
     args = parser.parse_args(argv)
 
     allowed = {name.lower() for name in args.allow}
@@ -52,6 +63,8 @@ def run(argv: list[str]) -> int:
 
     if args.format == "json":
         _print_json(findings)
+    elif args.format == "sarif":
+        _print_sarif(findings)
     else:
         _print_text(findings)
         if findings:

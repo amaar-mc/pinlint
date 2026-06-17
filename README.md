@@ -78,7 +78,8 @@ protection). The only dependency is `packaging`, the canonical PEP 508 parser.
 - `--no-hashes` do not require `--hash` entries.
 - `--no-follow` do not follow `-r` and `-c` includes.
 - `--allow PACKAGE` ignore findings for a package name (repeatable).
-- `--format text|json` choose the output format; `json` suits CI and editors.
+- `--format text|json|sarif` choose the output format. `json` suits CI and editors; `sarif`
+  emits SARIF 2.1.0 for GitHub code scanning and other analysis tools.
 
 ## Pre-commit
 

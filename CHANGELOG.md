@@ -6,6 +6,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0]
+
+### Added
+- Baseline support for incremental adoption: `--write-baseline PATH` computes all
+  current findings and writes them to a JSON file; `--baseline PATH` on subsequent
+  runs suppresses those known findings and exits nonzero only when new findings appear.
+- `baseline.py` module with four pure, testable functions exported from the public API:
+  `build_baseline`, `serialize_baseline`, `load_baseline`, and `filter_by_baseline`.
+- Fingerprint design: each finding is identified by (code, file, requirement, name),
+  omitting the line number so that adding lines above an existing requirement does not
+  break suppression.
+- Both baseline flags compose with all existing flags (`--format`, `--allow`,
+  `--no-hashes`, `--allow-unpinned`, `--no-follow`). When both `--write-baseline`
+  and `--baseline` are given, `--write-baseline` wins.
+
 ## [0.3.0]
 
 ### Added

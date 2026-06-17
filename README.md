@@ -80,6 +80,30 @@ protection). The only dependency is `packaging`, the canonical PEP 508 parser.
 - `--allow PACKAGE` ignore findings for a package name (repeatable).
 - `--format text|json|sarif` choose the output format. `json` suits CI and editors; `sarif`
   emits SARIF 2.1.0 for GitHub code scanning and other analysis tools.
+- `--write-baseline PATH` write all current findings to a baseline JSON file, then exit 0.
+- `--baseline PATH` suppress findings present in the baseline; exit nonzero only when new
+  findings remain.
+
+## Baseline: adopt pinlint incrementally
+
+If an existing project has many unpinned requirements you cannot fix all at once, use a
+baseline to suppress the known findings and fail only on new ones.
+
+```sh
+# Record the current state.
+pinlint requirements.txt --write-baseline .pinlint-baseline.json
+
+# In CI, suppress known findings and fail only on new ones.
+pinlint requirements.txt --baseline .pinlint-baseline.json
+```
+
+The baseline file is deterministic and human-readable, so it diffs cleanly in code review.
+Findings are fingerprinted by rule code, file path, requirement text, and package name --
+not by line number -- so adding or removing unrelated lines above a requirement does not
+invalidate its suppression.
+
+Commit `.pinlint-baseline.json` to version control. When you fix a requirement, re-run
+`--write-baseline` and commit the smaller file; the diff shows the fix.
 
 ## Pre-commit
 

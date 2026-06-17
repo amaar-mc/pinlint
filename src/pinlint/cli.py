@@ -1,7 +1,19 @@
 import argparse
+import json
 import sys
+from dataclasses import asdict
 
 from .lint import lint_file
+from .model import Finding
+
+
+def _print_text(findings: list[Finding]) -> None:
+    for finding in findings:
+        print(f"{finding.file}:{finding.line}: {finding.code}: {finding.message}")
+
+
+def _print_json(findings: list[Finding]) -> None:
+    print(json.dumps([asdict(finding) for finding in findings], indent=2))
 
 
 def run(argv: list[str]) -> int:
@@ -15,9 +27,18 @@ def run(argv: list[str]) -> int:
     )
     parser.add_argument("--no-hashes", action="store_true", help="do not require --hash entries")
     parser.add_argument("--no-follow", action="store_true", help="do not follow -r and -c includes")
+    parser.add_argument(
+        "--allow",
+        action="append",
+        default=[],
+        metavar="PACKAGE",
+        help="ignore findings for this package name (repeatable)",
+    )
+    parser.add_argument("--format", choices=("text", "json"), default="text", help="output format")
     args = parser.parse_args(argv)
 
-    findings = []
+    allowed = {name.lower() for name in args.allow}
+    findings: list[Finding] = []
     for file in args.files:
         findings.extend(
             lint_file(
@@ -27,13 +48,15 @@ def run(argv: list[str]) -> int:
                 follow_includes=not args.no_follow,
             )
         )
+    findings = [f for f in findings if f.name == "" or f.name.lower() not in allowed]
 
-    for finding in findings:
-        print(f"{finding.file}:{finding.line}: {finding.code}: {finding.message}")
-    if findings:
-        print(f"{len(findings)} issue(s) found", file=sys.stderr)
-        return 1
-    return 0
+    if args.format == "json":
+        _print_json(findings)
+    else:
+        _print_text(findings)
+        if findings:
+            print(f"{len(findings)} issue(s) found", file=sys.stderr)
+    return 1 if findings else 0
 
 
 def main() -> int:

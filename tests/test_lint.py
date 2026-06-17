@@ -79,3 +79,9 @@ def test_relaxed_flags() -> None:
 
 def test_parse_error() -> None:
     assert lint("==1.0 --hash=sha256:a\n") == ["parse-error"]
+
+
+def test_findings_carry_package_name() -> None:
+    findings = lint_text("flask>=2.0\n", source="r", require_hashes=True, allow_unpinned=False)
+    assert findings
+    assert all(f.name == "flask" for f in findings)

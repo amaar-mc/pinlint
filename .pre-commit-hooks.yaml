@@ -1,0 +1,6 @@
+- id: pinlint
+  name: pinlint
+  description: Check that requirements files are fully version-pinned and hash-pinned.
+  entry: pinlint
+  language: python
+  files: requirements.*\.txt$

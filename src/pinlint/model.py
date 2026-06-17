@@ -10,3 +10,5 @@ class Finding:
     code: str
     message: str
     requirement: str
+    # Distribution name when the requirement parsed, else "" (for example a URL install).
+    name: str = ""

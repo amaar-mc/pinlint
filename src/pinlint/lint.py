@@ -88,12 +88,18 @@ def lint_text(
                     "unpinned",
                     f"{requirement.name} is not pinned to an exact version (use ==)",
                     spec,
+                    name=requirement.name,
                 )
             )
         if require_hashes and not hashes:
             findings.append(
                 Finding(
-                    source, entry.number, "missing-hash", f"{requirement.name} has no --hash", spec
+                    source,
+                    entry.number,
+                    "missing-hash",
+                    f"{requirement.name} has no --hash",
+                    spec,
+                    name=requirement.name,
                 )
             )
     return findings

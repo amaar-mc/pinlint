@@ -77,6 +77,22 @@ protection). The only dependency is `packaging`, the canonical PEP 508 parser.
 - `--allow-unpinned` do not require exact version pins.
 - `--no-hashes` do not require `--hash` entries.
 - `--no-follow` do not follow `-r` and `-c` includes.
+- `--allow PACKAGE` ignore findings for a package name (repeatable).
+- `--format text|json` choose the output format; `json` suits CI and editors.
+
+## Pre-commit
+
+pinlint ships a hook, so you can add it to `.pre-commit-config.yaml`:
+
+```yaml
+repos:
+  - repo: https://github.com/amaar-mc/pinlint
+    rev: v0.2.0
+    hooks:
+      - id: pinlint
+```
+
+The hook runs on files matching `requirements.*\.txt`.
 
 ## Testing
 

@@ -7,9 +7,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Planned
-- A pre-commit hook entry.
-- JSON and SARIF output for CI annotations.
-- Per-package allowlists.
+- SARIF output for code-scanning annotations.
+
+## [0.2.0]
+
+### Added
+- `--format json` output for editor and CI integration.
+- A `.pre-commit-hooks.yaml` so pinlint can be used directly as a pre-commit hook.
+- `--allow PACKAGE` (repeatable) to ignore findings for named packages.
+- A `name` field on `Finding` holding the distribution name when the requirement parsed.
 
 ## [0.1.0]
 

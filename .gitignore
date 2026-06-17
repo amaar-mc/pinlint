@@ -12,3 +12,6 @@ dist/
 .coverage
 htmlcov/
 .DS_Store
+
+# internal planning notes, not part of the package
+.planning/

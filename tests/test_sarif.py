@@ -21,6 +21,7 @@ def test_document_shape() -> None:
         "unpinned",
         "missing-hash",
         "unpinnable",
+        "duplicate",
         "parse-error",
         "io-error",
     ]

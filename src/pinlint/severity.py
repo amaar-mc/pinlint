@@ -14,7 +14,7 @@ SeverityMap = dict[str, SeverityLevel]
 
 # All valid rule codes.
 _KNOWN_CODES: frozenset[str] = frozenset(
-    ["unpinned", "missing-hash", "unpinnable", "parse-error", "io-error"]
+    ["unpinned", "missing-hash", "unpinnable", "duplicate", "parse-error", "io-error"]
 )
 
 # Default severity per code. Matches sarif.py _RULES level column exactly.
@@ -22,6 +22,7 @@ _DEFAULTS: SeverityMap = {
     "unpinned": "error",
     "missing-hash": "error",
     "unpinnable": "warning",
+    "duplicate": "warning",
     "parse-error": "error",
     "io-error": "error",
 }
@@ -36,7 +37,8 @@ def default_severity_map() -> SeverityMap:
     """Return the default severity map (matches the SARIF rule catalog defaults).
 
     Intended as a named constructor so callers do not pass a defaulted argument.
-    unpinned=error, missing-hash=error, unpinnable=warning, parse-error=error, io-error=error.
+    unpinned=error, missing-hash=error, unpinnable=warning, duplicate=warning,
+    parse-error=error, io-error=error.
     """
     return dict(_DEFAULTS)
 

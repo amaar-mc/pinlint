@@ -66,6 +66,12 @@ pinned and hashed. `pinlint` is that check.
 - `unpinned`: the requirement is not pinned with `==` or `===` to an exact version.
 - `missing-hash`: the requirement has no `--hash` (unless `--no-hashes`).
 - `unpinnable`: an editable, URL, or VCS install that cannot be version-pinned.
+- `duplicate`: the same project is listed on more than one requirement line. Comparison is
+  by PEP 503 normalized name (so `Flask` and `flask`, or `typing-extensions` and
+  `typing_extensions`, are the same project). Lines guarded by different environment markers
+  are mutually exclusive and are not flagged; differing extras of the same project
+  (`foo[a]` and `foo[b]`) are still duplicates of the base project, since pip resolves one
+  version.
 - `parse-error`: the line could not be parsed as a requirement.
 
 It understands comments, blank lines, backslash line continuations, `--hash` options,
@@ -113,10 +119,12 @@ Default severities (no flags) match the SARIF rule catalog and are backward comp
 | `unpinned` | error |
 | `missing-hash` | error |
 | `unpinnable` | warning |
+| `duplicate` | warning |
 | `parse-error` | error |
 | `io-error` | error |
 
-Valid rule codes: `unpinned`, `missing-hash`, `unpinnable`, `parse-error`, `io-error`.
+Valid rule codes: `unpinned`, `missing-hash`, `unpinnable`, `duplicate`, `parse-error`,
+`io-error`.
 Passing an unknown code exits 2 with a clear error message listing the valid codes.
 
 ### Programmatic API

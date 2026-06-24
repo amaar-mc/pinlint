@@ -24,6 +24,7 @@ _RULES: list[tuple[str, str, str]] = [
     ("unpinned", "error", "Requirement is not pinned to an exact version"),
     ("missing-hash", "error", "Requirement has no --hash entry"),
     ("unpinnable", "warning", "Requirement cannot be pinned or hashed"),
+    ("duplicate", "warning", "Project is listed on more than one requirement line"),
     ("parse-error", "error", "Requirement could not be parsed"),
     ("io-error", "error", "Requirements file could not be read"),
 ]

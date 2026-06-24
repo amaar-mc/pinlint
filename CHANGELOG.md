@@ -6,7 +6,23 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [0.5.0]
+## [0.6.0] - 2026-06-23
+
+### Added
+- `duplicate` rule: flags a project listed on more than one requirement line in a single
+  file. Comparison uses the PEP 503 normalized name via `packaging.utils.canonicalize_name`,
+  so `Flask` and `flask`, or `typing-extensions` and `typing_extensions`, are recognized as
+  the same project. Each occurrence after the first is reported, naming the normalized
+  project and the line on which it was first seen.
+- Marker awareness: lines for the same project guarded by different environment markers
+  (for example `python_version < "3.9"` versus `>= "3.9"`) are mutually exclusive and are
+  not flagged. Same or absent markers on multiple lines are duplicates.
+- Extras handling: differing extras of one project (`foo[a]` and `foo[b]`) are treated as
+  duplicates of base `foo`, because pip resolves a single version per project regardless of
+  the extras requested.
+- Default severity for `duplicate` is `warning`, matching the SARIF rule catalog. It
+  participates in `--error` / `--warning` / `--off CODE` overrides and the baseline
+  mechanism like every other rule.
 
 ### Added
 - Per-rule severity configuration: `--error CODE`, `--warning CODE`, and `--off CODE` CLI

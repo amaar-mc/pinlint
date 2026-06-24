@@ -49,6 +49,7 @@ def test_default_severity_map_matches_sarif_catalog() -> None:
     assert sev["unpinned"] == "error"
     assert sev["missing-hash"] == "error"
     assert sev["unpinnable"] == "warning"
+    assert sev["duplicate"] == "warning"
     assert sev["parse-error"] == "error"
     assert sev["io-error"] == "error"
 
@@ -67,7 +68,7 @@ def test_default_severity_map_is_independent_copy() -> None:
 
 def test_known_codes_contains_all_rule_codes() -> None:
     assert known_codes() == frozenset(
-        ["unpinned", "missing-hash", "unpinnable", "parse-error", "io-error"]
+        ["unpinned", "missing-hash", "unpinnable", "duplicate", "parse-error", "io-error"]
     )
 
 

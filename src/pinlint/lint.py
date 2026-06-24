@@ -2,6 +2,7 @@ from pathlib import Path
 
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.specifiers import SpecifierSet
+from packaging.utils import canonicalize_name
 
 from .model import Finding
 from .parse import logical_lines
@@ -38,12 +39,29 @@ def _is_exactly_pinned(specifier: SpecifierSet) -> bool:
     return only.operator in ("==", "===") and "*" not in only.version
 
 
+def _marker_key(requirement: Requirement) -> str:
+    """A stable key for a requirement's environment marker, empty when absent.
+
+    Two lines for the same project are only a true duplicate when they apply in the
+    same environment. Lines guarded by different markers (for example
+    python_version < "3.9" versus >= "3.9") are mutually exclusive and must not be
+    flagged, so the marker is part of the duplicate key. The marker is normalized via
+    str() so equivalent markers written with different whitespace compare equal.
+    """
+    return "" if requirement.marker is None else str(requirement.marker)
+
+
 def lint_text(
     text: str, *, source: str, require_hashes: bool, allow_unpinned: bool
 ) -> list[Finding]:
     """Lint the contents of a requirements file. Includes (-r, -c) are not followed here;
     use lint_file for that."""
     findings: list[Finding] = []
+    # Track the first line on which each (normalized name, marker) pair was seen so a
+    # later occurrence can be reported as a duplicate. Extras are deliberately not part
+    # of the key: pip resolves a single version for a project regardless of which extras
+    # are requested, so foo[a] and foo[b] on separate lines are duplicates of base foo.
+    seen_projects: dict[tuple[str, str], int] = {}
     for entry in logical_lines(text):
         line = entry.text
         first = line.split(maxsplit=1)[0]
@@ -80,6 +98,22 @@ def lint_text(
                 Finding(source, entry.number, "unpinnable", "URL install cannot be pinned", spec)
             )
             continue
+        normalized = str(canonicalize_name(requirement.name))
+        project_key = (normalized, _marker_key(requirement))
+        first_line = seen_projects.get(project_key)
+        if first_line is None:
+            seen_projects[project_key] = entry.number
+        else:
+            findings.append(
+                Finding(
+                    source,
+                    entry.number,
+                    "duplicate",
+                    f"{normalized} is listed more than once (first seen on line {first_line})",
+                    spec,
+                    name=normalized,
+                )
+            )
         if not allow_unpinned and not _is_exactly_pinned(requirement.specifier):
             findings.append(
                 Finding(
